@@ -14,7 +14,7 @@
 
 # Todos
 
-- [ ] Import model ke dalam project
+- [*] Import model ke dalam project
 - [ ] Model berhasil running (Cek resource)
 - [ ] Model berhasil respons, output OK
 - [ ] Buat function untuk pre-process tweet

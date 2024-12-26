@@ -2,14 +2,14 @@
 # File untuk proses text dari API
 
 # Testing
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel # type: ignore
 
-import torch
+import torch # type: ignore
 
 if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained("indolem/indobertweet-base-uncased")
     model = AutoModel.from_pretrained("indolem/indobertweet-base-uncased")
-
+    
     text = "Bagus banget filmnya! @USER suka HTTPURL"
 
     inputs = tokenizer(text, return_tensors="pt")
