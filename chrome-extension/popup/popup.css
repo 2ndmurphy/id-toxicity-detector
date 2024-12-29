@@ -1,0 +1,107 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
+
+/* FONT */
+* {
+  font-family: "Plus Jakarta Sans", serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+/* POP UP SIZE */
+html {
+  min-width: 250px;
+}
+
+/* POP UP CONTENT */
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, Helvetica, sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+/* div {
+  border: 1px solid red;
+} */
+
+/* HEADER : TOP BAR */
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 4em;
+  background-color: orangered;
+}
+
+.header h1 {
+  margin: 0 0 0 0.8em;
+  color: white;
+  font-size: 1rem;
+}
+
+/* NEGATIVITY INFORMATION : AMOUNT & TEXT */
+.negativity-information {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 10em;
+}
+
+#negativity-amount {
+  font-size: 6em;
+}
+
+.negativity-information h2 {
+  margin: 0;
+  font-weight: normal;
+  font-size: 1.3em;
+}
+
+/* ADDITIONAL INFORMATION : SCRAP AMOUNT & PERCENTAGE */
+.additional-information {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 0.8em 1em;
+  height: 4em;
+}
+
+.additional-information div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.additional-information div span {
+  font-size: 1.2em;
+}
+
+/* INITIATE BUTTON : ACTIVATE OR DEACTIVATE BUTTON */
+.footer {
+  display: flex;
+  height: 3em;
+}
+
+.footer button {
+  background-color: orangered;
+  cursor: pointer;
+  border: none;
+  color: white;
+  font-size: 1.3em;
+}
+
+.footer button:hover {
+  background-color: rgb(208, 55, 0);
+}
+
+#initiate-button {
+  flex: 2;
+}
+
+#reset-button {
+  flex: 1;
+  border-left: 1px solid rgb(208, 55, 0);;
+}
