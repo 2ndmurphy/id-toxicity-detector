@@ -57,6 +57,7 @@ Analyze a piece of text to determine the probability of it being hate speech or 
 - **Body (Success):**
 ```json
 {
+  "message": <message>,
   "hate_speech": <probability>,
   "non_hate_speech": <probability>
 }
@@ -73,6 +74,7 @@ Analyze a piece of text to determine the probability of it being hate speech or 
 ##### Response:
 ```json
 {
+  "message": "Successfully Recognize Hate Speech",
   "hate_speech": 0.448,
   "non_hate_speech": 0.551
 }
