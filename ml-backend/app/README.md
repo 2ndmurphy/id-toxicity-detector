@@ -7,14 +7,14 @@
   - `uv add fastapi uvicorn`
 - Command
   - cd ke `ml-backend` lalu,
-  - `uvicorn api:app --reload`
+  - `uvicorn api:app --reload` or
   - `python -m uvicorn app.api:app --reload` (run server)
   - `app.api`: Path ke file `api.py`, dimulai dari nama folder (app) tanpa ekstensi `.py`.
-  - `app`: Nama instance FastAPI yang dideklarasikan di main.py.
+  - `app`: Nama instance FastAPI yang dideklarasikan di api.py.
   - `--reload`: Memuat ulang server secara otomatis saat ada perubahan kode (cocok untuk pengembangan).
 
 # Todos
 
 - [*] Setup dan konfigurasi awal
-- [*] Server berhasil running di PORT [8000]
+- [*] Server berhasil running di PORT [3000]
 - [*] Buat endpoint ke model

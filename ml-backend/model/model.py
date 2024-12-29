@@ -19,4 +19,4 @@ def analyze_text(model, tokenizer, text):
     logits = outputs.logits
     probabilities = torch.nn.functional.softmax(logits, dim=-1).tolist()[0]
 
-    return {"hate_speech": probabilities[1], "non_hate_speech": probabilities[0]}
+    return {"message": "Succesfully Recognize Hate Speech","hate_speech": probabilities[1], "non_hate_speech": probabilities[0]}
