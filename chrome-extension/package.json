@@ -1,0 +1,17 @@
+{
+  "name": "id-toxicity-detector-chrome-extension",
+  "version": "1.0.0",
+  "description": "Detect Toxicity by Scrapping Indonesian Tweets and feed it into a Python Backend API",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "typescript": "^5.7.2"
+  }
+}
