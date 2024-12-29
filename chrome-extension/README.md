@@ -7,3 +7,6 @@ Todos:
 - [ ] Scrapping Text dengan JavaScript, output di console
 - [ ] Function untuk Highlight Text berdasarkan teks input
 - [ ] ???
+
+# THANK YOU SIR
+[https://github.com/getvictor/create-chrome-extension](https://github.com/getvictor/create-chrome-extension)

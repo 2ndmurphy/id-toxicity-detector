@@ -6,12 +6,12 @@
   "permissions": ["activeTab", "storage"],
   "host_permissions": ["*://*.twitter.com/*", "*://*.x.com/*"],
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
       "matches": ["https://*.twitter.com/*", "https://*.x.com/*"],
-      "js": ["dist/scripts/content.js"]
+      "js": ["content.js"]
     }
   ]
 }
