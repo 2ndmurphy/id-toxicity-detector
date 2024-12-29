@@ -17,5 +17,4 @@
 
 - [*] Setup dan konfigurasi awal
 - [*] Server berhasil running di PORT [8000]
-- [ ] Buat endpoint ke model
-- [ ] ???
+- [*] Buat endpoint ke model
