@@ -1,13 +1,7 @@
-const STORAGE_KEY_INITIATE_STATUS = "initiateStatus";
+import { StorageFunction } from "./sharedTypes";
 
-async function getInitiateStatus(): Promise<boolean> {
-  const result = await chrome.storage.local.get([STORAGE_KEY_INITIATE_STATUS]);
-  return result[STORAGE_KEY_INITIATE_STATUS] ?? true; // Default to "true" (Start)
-}
-
-async function setInitiateStatus(status: boolean): Promise<void> {
-  await chrome.storage.local.set({ [STORAGE_KEY_INITIATE_STATUS]: status });
-}
+const { getInitiateStatus, setInitiateStatus } =
+  require("./storageUtils") as StorageFunction;
 
 const initiateButton = document.getElementById(
   "initiate-button"
@@ -15,14 +9,18 @@ const initiateButton = document.getElementById(
 
 async function updateButtonState(): Promise<void> {
   const status = await getInitiateStatus();
-  initiateButton.textContent = status ? "Start" : "Stop";
+  initiateButton.textContent = status ? "Stop" : "Start";
 }
 
 initiateButton.addEventListener("click", async () => {
   const currentStatus = await getInitiateStatus();
   const newStatus = !currentStatus;
   await setInitiateStatus(newStatus);
-  initiateButton.textContent = newStatus ? "Start" : "Stop";
+  initiateButton.textContent = newStatus ? "Stop" : "Start";
+
+  chrome.runtime.sendMessage({
+    action: newStatus ? "startAnalysis" : "stopAnalysis",
+  });
 });
 
 // Initialize Button state on popup load (opening popup)
