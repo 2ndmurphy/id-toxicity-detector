@@ -1,20 +1,18 @@
 import { TweetBuffer, ApiRespone } from "./sharedTypes";
 
-interface Tweet {
-  tweetElement: HTMLDivElement;
-  tweetText: string;
-}
-
 let isObserving = false;
 let observer: MutationObserver | null = null;
 
-let loadedTweets = new Map<number, Tweet>();
-let toxicTweetElements: HTMLDivElement[] = [];
+let loadedTweets = new Map<number, string>();
+let toxicTweets: string[] = [];
 let newTweetsBuffer: TweetBuffer[] = [];
 
 let currentTweetIds = 0;
 
 let lastApiCallTime = Date.now();
+
+let apiCallIntervalId: number | null = null;
+let highlightIntervalId: number | null = null;
 
 function processEmojiToByteSequence(emoji: string): string {
   const encoder = new TextEncoder();
@@ -34,37 +32,37 @@ function processTweetText(text: string): string {
     .trim();
 }
 
-function scrapeTweets(): Map<number, Tweet> {
-  const currentTweets = new Map<number, Tweet>();
+function extractAndProcessTweetText(tweetDiv: HTMLDivElement): string {
+  let tweetText = "";
+
+  for (const element of tweetDiv.children) {
+    switch (element.tagName) {
+      case "SPAN":
+        tweetText += (element as HTMLSpanElement).textContent || "";
+        break;
+      case "IMG":
+        const emoji = (element as HTMLImageElement).alt || "";
+        tweetText += processEmojiToByteSequence(emoji);
+        break;
+      default:
+        tweetText += element.textContent || "";
+        break;
+    }
+  }
+
+  return processTweetText(tweetText);
+}
+
+function scrapeTweets(): string[] {
+  const currentTweets: string[] = [];
 
   const tweetDivs = document.querySelectorAll(
     "div[data-testid='tweetText']"
   ) as NodeListOf<HTMLDivElement>;
 
   for (const tweetDiv of tweetDivs) {
-    let tweetText = "";
-
-    for (const element of tweetDiv.children) {
-      switch (element.tagName) {
-        case "SPAN":
-          tweetText += (element as HTMLSpanElement).textContent || "";
-          break;
-        case "IMG":
-          const emoji = (element as HTMLImageElement).alt || "";
-          tweetText += processEmojiToByteSequence(emoji);
-          break;
-        default:
-          tweetText += element.textContent || "";
-          break;
-      }
-    }
-
-    currentTweetIds++;
-
-    currentTweets.set(currentTweetIds, {
-      tweetElement: tweetDiv,
-      tweetText: processTweetText(tweetText),
-    });
+    const processedText = extractAndProcessTweetText(tweetDiv);
+    currentTweets.push(processedText);
   }
 
   return currentTweets;
@@ -87,29 +85,34 @@ function waitForTweetContainer(): Promise<HTMLElement> {
 function resetLoadedTweets() {
   console.log("Resetting tweets...");
   loadedTweets.clear();
+  toxicTweets = [];
 }
 
-function handleNewTweets(newTweetsMap: Map<number, Tweet>) {
-  newTweetsMap.forEach((tweet, id) => {
+function handleNewTweets(newTweets: string[]) {
+  newTweets.forEach((tweet) => {
     let isNewTweet = true;
     for (const existingTweet of loadedTweets.values()) {
-      if (existingTweet.tweetText === tweet.tweetText) {
+      if (existingTweet === tweet) {
         isNewTweet = false;
         break;
       }
     }
 
     if (isNewTweet) {
-      loadedTweets.set(id, tweet);
-      newTweetsBuffer.push({ id: id, tweetText: tweet.tweetText });
-      console.log("New Tweet Added:", { id, tweetText: tweet.tweetText });
+      currentTweetIds++;
+      loadedTweets.set(currentTweetIds, tweet);
+      newTweetsBuffer.push({ id: currentTweetIds, tweetText: tweet });
+      console.log("New Tweet Added:", { currentTweetIds, tweetText: tweet });
+      console.log("Current Id", currentTweetIds);
       console.log(loadedTweets);
     }
   });
 }
 
 function sendTweetsBufferToApi() {
-  setInterval(() => {
+  if (apiCallIntervalId !== null) return;
+
+  apiCallIntervalId = window.setInterval(() => {
     const now = Date.now();
     if (newTweetsBuffer.length > 0 && now - lastApiCallTime >= 5000) {
       chrome.runtime.sendMessage({
@@ -121,6 +124,13 @@ function sendTweetsBufferToApi() {
       lastApiCallTime = now;
     }
   }, 1000);
+}
+
+function stopSendTweetsBufferToApi() {
+  if (highlightIntervalId !== null) {
+    clearInterval(highlightIntervalId);
+    highlightIntervalId = null;
+  }
 }
 
 async function startObservingTweets() {
@@ -153,6 +163,7 @@ async function startObservingTweets() {
   observer.observe(tweetContainer, { childList: true, subtree: true });
   console.log("Tweet observer started!");
 
+  stopSendTweetsBufferToApi();
   sendTweetsBufferToApi();
 }
 
@@ -161,49 +172,86 @@ function stopObservingTweets() {
     observer.disconnect();
     observer = null;
     isObserving = false;
-    loadedTweets.clear();
+    stopSendTweetsBufferToApi();
     console.log("Tweet observer stopped.");
   }
 }
 
 function highlightToxicTweets() {
-  setInterval(() => {
-    for (const toxicTweetsElement of toxicTweetElements) {
-      toxicTweetsElement.style.border = "1px solid red";
-    }
+  if (highlightIntervalId !== null) return;
 
-    console.log(toxicTweetElements);
+  highlightIntervalId = window.setInterval(() => {
+    const tweetDivs = document.querySelectorAll(
+      "div[data-testid='tweetText']"
+    ) as NodeListOf<HTMLDivElement>;
+
+    for (const tweetDiv of tweetDivs) {
+      const processedText = extractAndProcessTweetText(tweetDiv);
+
+      if (toxicTweets.includes(processedText)) {
+        const tweetArticle = tweetDiv.closest('article[data-testid="tweet"]') as HTMLDivElement;
+        tweetArticle.style.backgroundColor = "rgba(255, 70, 0, 0.5)";
+
+        console.log("Highlighted toxic tweet:", toxicTweets);
+      }
+    }
   }, 2000);
 }
 
-function processToxicTweet(toxicTweets: ApiRespone[]) {
-  if (!toxicTweets || toxicTweets.length === 0) return;
+function stopHighlightingToxicTweets() {
+  if (highlightIntervalId !== null) {
+    window.clearInterval(highlightIntervalId);
+    highlightIntervalId = null;
+  }
+}
 
-  for (const toxicTweet of toxicTweets) {
-    const tweetData = loadedTweets.get(toxicTweet.id);
+function processToxicTweet(toxicTweetsResponse: ApiRespone[]) {
+  if (!toxicTweetsResponse || toxicTweetsResponse.length === 0) return;
 
-    if (tweetData && toxicTweet.isToxic) {
-      toxicTweetElements.push(tweetData.tweetElement);
-      console.log("Highlighted toxic tweet:", toxicTweet.id);
+  for (const toxicTweet of toxicTweetsResponse) {
+    const tweetText = loadedTweets.get(toxicTweet.id);
+
+    if (tweetText && toxicTweet.isToxic) {
+      toxicTweets.push(tweetText);
+      console.log("Toxic tweet found:", toxicTweet.id);
     }
   }
 }
 
-chrome.runtime.onMessage.addListener(async (request, sender) => {
-  switch (request.action) {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  switch (message.action) {
     case "startObserving":
       startObservingTweets();
       break;
     case "stopObserving":
       stopObservingTweets();
+      stopHighlightingToxicTweets();
       break;
     case "highlightTweets":
-      const toxicTweets = request.toxicTweets as ApiRespone[];
-      processToxicTweet(toxicTweets);
+      const toxicTweetsResponse = message.toxicTweetsResponse as ApiRespone[];
+      processToxicTweet(toxicTweetsResponse);
+      stopHighlightingToxicTweets();
       highlightToxicTweets();
       break;
   }
 });
+
+function getCurrentTweetData(): {
+  processed: number;
+  toxic: number;
+  percentage: string;
+} {
+  const processed = loadedTweets.size;
+  const toxic = toxicTweets.length;
+  const percentage =
+    processed > 0 ? ((toxic / processed) * 100).toFixed(2) : "0.00";
+  return { processed, toxic, percentage };
+}
+
+window.setInterval(() => {
+  const data = getCurrentTweetData();
+  chrome.runtime.sendMessage({ action: "updatePopupData", data: data });
+}, 1000);
 
 chrome.runtime.sendMessage({ action: "getInitiateStatus" }, (response) => {
   if (response && response.status) {

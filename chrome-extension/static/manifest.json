@@ -3,7 +3,7 @@
   "name": "ID Twitter Toxicity Detector",
   "version": "1.0.0",
   "description": "Chrome Extension to detect Toxic Indonesian Tweet using Machine Learning model. For Axioo AI Skill Contest",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["tabs", "activeTab", "storage"],
   "host_permissions": ["*://*.twitter.com/*", "*://*.x.com/*"],
   "action": {
     "default_popup": "popup.html"

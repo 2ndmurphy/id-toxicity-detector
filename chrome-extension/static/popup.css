@@ -98,10 +98,5 @@ body {
 }
 
 #initiate-button {
-  flex: 2;
-}
-
-#reset-button {
   flex: 1;
-  border-left: 1px solid rgb(208, 55, 0);;
 }
