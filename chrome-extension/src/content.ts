@@ -1,3 +1,4 @@
+import { unemojify } from 'node-emoji';
 import { TweetBuffer, ApiRespone } from "./sharedTypes";
 
 let isObserving = false;
@@ -14,14 +15,8 @@ let lastApiCallTime = Date.now();
 let apiCallIntervalId: number | null = null;
 let highlightIntervalId: number | null = null;
 
-function processEmojiToByteSequence(emoji: string): string {
-  const encoder = new TextEncoder();
-  const encoded = encoder.encode(emoji);
-  let hexString = "";
-  for (const byte of encoded) {
-    hexString += "\\x" + byte.toString(16).padStart(2, "0");
-  }
-  return hexString;
+function processEmoji(emoji: string): string {
+  return unemojify(emoji);
 }
 
 function processTweetText(text: string): string {
@@ -42,7 +37,7 @@ function extractAndProcessTweetText(tweetDiv: HTMLDivElement): string {
         break;
       case "IMG":
         const emoji = (element as HTMLImageElement).alt || "";
-        tweetText += processEmojiToByteSequence(emoji);
+        tweetText += processEmoji(emoji);
         break;
       default:
         tweetText += element.textContent || "";

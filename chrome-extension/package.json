@@ -19,5 +19,8 @@
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1",
     "webpack-merge": "^6.0.1"
+  },
+  "dependencies": {
+    "node-emoji": "^2.2.0"
   }
 }

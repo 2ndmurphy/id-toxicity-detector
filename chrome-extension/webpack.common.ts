@@ -9,7 +9,8 @@ const config: Configuration = {
     popup: "./src/popup.ts",
   },
   resolve: {
-    extensions: [".ts"],
+    extensions: [".ts", "..."],
+    modules: [path.join(__dirname, "node_modules")],
   },
   module: {
     rules: [
