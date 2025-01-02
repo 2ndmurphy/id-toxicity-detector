@@ -1,38 +1,36 @@
 # Chrome Extension
 
-Chrome extension for scraping & highlight toxic Tweets.
+A Chrome extension for scraping and highlighting toxic tweets.
 
-## How to Build & Install
-> [!NOTE]
-> Make sure you have [NodeJS](https://nodejs.org/) installed on your device.
+## Features
+- Scrapes tweets from Twitter.
+- Highlights tweets identified as toxic.
+- Analyze toxicity of your tweet.
 
-1. Clone this repository
-    ```
-    git clone https://github.com/Luckwut/id-toxicity-detector.git
-    ```
+## Prerequisites
+- Ensure [Node.js](https://nodejs.org/) is installed.
 
-2. Go to `chrome-extension/` directory
-    ```
-    cd chrome-extension/
-    ```
+## How to Build and Install
 
-3. Install dependencies
-    ```
+1. Install dependencies:
+    ```bash
     npm install
     ```
 
-4. Build the project
-    ```
+2. Build the project:
+    ```bash
     npm run build
     ```
 
-5. Look for `dist/` folder. That is the chrome extension.
-6. Open Chrome and go to [chrome://extensions/](chrome://extensions/)
-7. Activate `Developer Mode`.
-8. Click `Load unpacked` button.
-9. Go to this project folder and select the `dist/` folder.
-10. Activate the extension.
+3. Locate the `dist/` folder, which contains the built extension.
 
+4. Add the extension to Chrome:
+    - Open Chrome and navigate to [chrome://extensions/](chrome://extensions/).
+    - Enable `Developer Mode` in the top-right corner.
+    - Click `Load unpacked` and select the `dist/` folder.
+    - Activate the extension.
 
-## Special Thanks
-- [https://github.com/getvictor/create-chrome-extension](https://github.com/getvictor/create-chrome-extension) untuk template TS + Webpack.
+5. Make sure the Python Backend is activated first before using the extension.
+
+## Credits
+Special thanks to [getvictor](https://github.com/getvictor/create-chrome-extension) for the template!
