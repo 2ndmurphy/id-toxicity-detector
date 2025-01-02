@@ -10,7 +10,7 @@ interface ToxicTweet {
   toxicity: number,
 }
 
-const BATCH_PROCESSING_AMOUNT = 5;
+const BATCH_PROCESSING_AMOUNT = 3;
 const TOXICITY_THRESHOLD = 0.5;
 
 let isObserving = false;
