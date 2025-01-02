@@ -58,8 +58,11 @@ Analyze a piece of text to determine the probability of it being hate speech or 
 ```json
 {
   "message": <message>,
-  "hate_speech": <probability>,
-  "non_hate_speech": <probability>
+  "result": {
+    "hate_speech": <probability>,
+    "non_hate_speech": <probability>,
+    "score": <mean>
+  },
 }
 ```
 
