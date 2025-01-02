@@ -18,3 +18,4 @@
 - [*] Setup dan konfigurasi awal
 - [*] Server berhasil running di PORT [3000]
 - [*] Buat endpoint ke model
+

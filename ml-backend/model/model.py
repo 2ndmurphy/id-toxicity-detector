@@ -1,22 +1,41 @@
-# TODO
-#? File untuk proses text dari API
+# File untuk proses text dari API
+from transformers import AutoTokenizer, AutoModelForSequenceClassification  # type: ignore
+import torch  # type: ignore
+import torch.nn.functional as F
 
-# Testing
-from transformers import AutoTokenizer, AutoModelForSequenceClassification # type: ignore
+# Load kedua model dan tokenizer
+model = AutoModelForSequenceClassification.from_pretrained("Exqrch/IndoBERTweet-HateSpeech")
+tokenizer = AutoTokenizer.from_pretrained("indolem/indobertweet-base-uncased")
 
-import torch # type: ignore
+def analyze_text(text: str):
+    """
+    Analisis teks menggunakan model:
+    - Hate Speech Detection
 
-def load_model():
-    tokenizer = AutoTokenizer.from_pretrained("indolem/indobertweet-base-uncased")
-    model = AutoModelForSequenceClassification.from_pretrained("indolem/indobertweet-base-uncased")
+    Args:
+        text (str): Teks yang akan dianalisis.
 
-    return model, tokenizer
-
-def analyze_text(model, tokenizer, text):    
+    Returns:
+        dict: Hasil probabilitas untuk setiap kategori dari dua model.
+    """
+    # Tokenisasi dan prediksi
     inputs = tokenizer(text, return_tensors="pt")
     with torch.no_grad():
         outputs = model(**inputs)
+        
     logits = outputs.logits
-    probabilities = torch.nn.functional.softmax(logits, dim=-1).tolist()[0]
+    probabilities = F.softmax(logits, dim=-1)
+    
+    # Konversi probabilitas ke persen dan bulatkan ke 2 desimal
+    not_hate_prob = round(probabilities[0][0].item() * 100, 2)  # Not Targeted Speech (%)
+    hate_prob = round(probabilities[0][1].item() * 100, 2)  # Targeted Speech (%)
 
-    return {"message": "Succesfully Recognize Hate Speech","hate_speech": probabilities[1], "non_hate_speech": probabilities[0]}
+    return {
+        "message": "Successfully Recognized TweetText",
+        "result": {
+            "hate_speech": hate_prob,
+            "not_hate_speech": not_hate_prob,
+            # Rata-rata probabilitas hate speech dan not hate speech (%)
+            "score": round((hate_prob + not_hate_prob) / 2, 2)  
+        }
+    }
