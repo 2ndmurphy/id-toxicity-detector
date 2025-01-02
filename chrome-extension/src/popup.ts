@@ -1,7 +1,4 @@
-import { StorageFunction } from "./sharedTypes";
-
-const { getInitiateStatus, setInitiateStatus } =
-  require("./storageUtils") as StorageFunction;
+import { getInitiateStatus, setInitiateStatus } from "./storageUtils";
 
 const negativityAmount = document.getElementById(
   "negativity-amount"

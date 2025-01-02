@@ -1,4 +1,4 @@
-import { unemojify } from 'node-emoji';
+import { unemojify } from "node-emoji";
 import { TweetBuffer, ApiRespone } from "./sharedTypes";
 
 let isObserving = false;
@@ -175,6 +175,8 @@ function stopObservingTweets() {
 function highlightToxicTweets() {
   if (highlightIntervalId !== null) return;
 
+  const highlightColor = "rgba(255, 70, 0, 0.5)";
+
   highlightIntervalId = window.setInterval(() => {
     const tweetDivs = document.querySelectorAll(
       "div[data-testid='tweetText']"
@@ -184,8 +186,10 @@ function highlightToxicTweets() {
       const processedText = extractAndProcessTweetText(tweetDiv);
 
       if (toxicTweets.includes(processedText)) {
-        const tweetArticle = tweetDiv.closest('article[data-testid="tweet"]') as HTMLDivElement;
-        tweetArticle.style.backgroundColor = "rgba(255, 70, 0, 0.5)";
+        const tweetArticle = tweetDiv.closest(
+          'article[data-testid="tweet"]'
+        ) as HTMLDivElement;
+        tweetArticle.style.backgroundColor = highlightColor;
 
         console.log("Highlighted toxic tweet:", toxicTweets);
       }

@@ -1,7 +1,5 @@
-import { StorageFunction, TweetBuffer, ApiRespone } from "./sharedTypes";
-
-const { getInitiateStatus, setInitiateStatus } =
-  require("./storageUtils") as StorageFunction;
+import { TweetBuffer, ApiRespone } from "./sharedTypes";
+import { getInitiateStatus, setInitiateStatus } from "./storageUtils";
 
 let latestTweetData: {
   processed: number;
