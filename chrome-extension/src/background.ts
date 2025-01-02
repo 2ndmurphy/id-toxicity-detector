@@ -55,7 +55,7 @@ async function callUserTweetToxicAnalysisApi(tweet: string): Promise<string> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    return data.hate_speech_probability.toString();
+    return data.toxicity.toString();
   } catch (error) {
     console.error("Error calling user tweet analysis API:", error);
     return "0";

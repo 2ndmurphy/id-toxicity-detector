@@ -12,5 +12,5 @@ export interface TweetBuffer {
 
 export interface ApiResponse {
   id: number;
-  isToxic: number;
+  toxicity: number;
 }

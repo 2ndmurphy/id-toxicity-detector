@@ -5,11 +5,19 @@ import { TweetBuffer, ApiResponse } from "./sharedTypes";
 /* *** ANALYZE TWEET *** */
 /* ************************** */
 
+interface ToxicTweet {
+  tweetText: string,
+  toxicity: number,
+}
+
+const BATCH_PROCESSING_AMOUNT = 5;
+const TOXICITY_THRESHOLD = 0.5;
+
 let isObserving = false;
 let observer: MutationObserver | null = null;
 
 let loadedTweets = new Map<number, string>();
-let toxicTweets: string[] = [];
+let toxicTweets: ToxicTweet[] = [];
 let newTweetsBuffer: TweetBuffer[] = [];
 
 let currentTweetIds = 0;
@@ -111,7 +119,7 @@ function sendTweetsBufferToApi() {
 
   apiCallIntervalId = window.setInterval(() => {
     const now = Date.now();
-    if (newTweetsBuffer.length >= 5 && now - lastApiCallTime >= 5000) {
+    if (newTweetsBuffer.length >= BATCH_PROCESSING_AMOUNT && now - lastApiCallTime >= 5000) {
       chrome.runtime.sendMessage({
         action: "processTweets",
         tweets: newTweetsBuffer,
@@ -174,10 +182,23 @@ function stopObservingTweets() {
   }
 }
 
+function interpolateColor(minColor: string, maxColor: string, factor: number): string {
+  const minRgb = minColor.match(/\d+/g)?.map(Number) || [255, 255, 255];
+  const maxRgb = maxColor.match(/\d+/g)?.map(Number) || [0, 0, 0];
+
+  const r = Math.round(minRgb[0] + (maxRgb[0] - minRgb[0]) * factor);
+  const g = Math.round(minRgb[1] + (maxRgb[1] - minRgb[1]) * factor);
+  const b = Math.round(minRgb[2] + (maxRgb[2] - minRgb[2]) * factor);
+  const a = 0.5;
+
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
 function highlightToxicTweets() {
   if (highlightIntervalId !== null) return;
 
-  const highlightColor = "rgba(255, 70, 0, 0.5)";
+  const maxHighlightColor = "rgba(255, 30, 0, 0.5)";  // Highest toxicity color
+  const minHighlightColor = "rgba(255, 180, 0, 0.5)";  // Lowest toxicity color
 
   highlightIntervalId = window.setInterval(() => {
     const tweetDivs = document.querySelectorAll(
@@ -187,11 +208,17 @@ function highlightToxicTweets() {
     for (const tweetDiv of tweetDivs) {
       const processedText = extractAndProcessTweetText(tweetDiv);
 
-      if (toxicTweets.includes(processedText)) {
+      const tweet = toxicTweets.find(t => t.tweetText === processedText);
+
+      if (tweet) {
         const tweetArticle = tweetDiv.closest(
           'article[data-testid="tweet"]'
         ) as HTMLDivElement;
-        tweetArticle.style.backgroundColor = highlightColor;
+
+        const toxicityFactor = Math.min(Math.max(tweet.toxicity, 0), 1);
+        const backgroundColor = interpolateColor(minHighlightColor, maxHighlightColor, toxicityFactor);
+
+        tweetArticle.style.backgroundColor = backgroundColor;
 
         console.log("Highlighted toxic tweet:", toxicTweets);
       }
@@ -212,10 +239,13 @@ function processToxicTweet(toxicTweetsResponse: ApiResponse[]) {
   for (const toxicTweet of toxicTweetsResponse) {
     const tweetText = loadedTweets.get(toxicTweet.id);
 
-    console.log("TOXISITAS:", toxicTweet.isToxic);
+    console.log(`Tweet Id ${toxicTweet.id} | Toxicity ${toxicTweet.toxicity} > Threshold ${TOXICITY_THRESHOLD}`);
 
-    if (tweetText && toxicTweet.isToxic > 0.5) {
-      toxicTweets.push(tweetText);
+    if (tweetText && toxicTweet.toxicity > TOXICITY_THRESHOLD) {
+      toxicTweets.push({
+        tweetText: tweetText,
+        toxicity: toxicTweet.toxicity
+      });
       console.log("Toxic tweet found:", toxicTweet.id);
     }
   }
