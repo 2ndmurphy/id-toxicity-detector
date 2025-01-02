@@ -9,6 +9,8 @@ let latestTweetData: {
 
 let activeTwitterTabId: number | null = null;
 
+const API_BASE_URL = "http://localhost:8000";
+
 async function sendHighlightingInstructions(
   tabId: number,
   toxicTweetsResponse: ApiResponse[]
@@ -19,30 +21,45 @@ async function sendHighlightingInstructions(
   });
 }
 
-// Mock API function
 async function callToxicAnalysisApi(
   tweets: TweetBuffer[]
 ): Promise<ApiResponse[]> {
-  console.log("Sending to API:", tweets);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const response = tweets.map((tweet) => ({
-        id: tweet.id,
-        isToxic: Math.random() < 0.5, // Example logic
-      }));
-      resolve(response);
-    }, 3000);
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/analyze_tweets`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(tweets),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error calling toxic analysis API:", error);
+    return [];
+  }
 }
 
 async function callUserTweetToxicAnalysisApi(tweet: string): Promise<string> {
-  console.log("Sending user tweet to API:", tweet);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const response = Math.random().toString();
-      resolve(response);
-    }, 3000);
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/analyze_tweet`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tweetText: tweet }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.hate_speech_probability.toString();
+  } catch (error) {
+    console.error("Error calling user tweet analysis API:", error);
+    return "0";
+  }
 }
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {

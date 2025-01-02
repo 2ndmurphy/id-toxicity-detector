@@ -19,16 +19,14 @@ let lastApiCallTime = Date.now();
 let apiCallIntervalId: number | null = null;
 let highlightIntervalId: number | null = null;
 
-function processEmoji(emoji: string): string {
-  return unemojify(emoji);
-}
-
-function processTweetText(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/@\w+/g, "USER") // Replace @user mentions with USER
-    .replace(/https?:\/\/[^\s]+/g, "HTTPURL") // Replace URLs with HTTPURL
-    .trim();
+function preProcessTweetText(text: string): string {
+  return unemojify(
+    text
+      .toLowerCase()
+      .replace(/@\w+/g, "USER") // Replace @user mentions with USER
+      .replace(/https?:\/\/[^\s]+/g, "HTTPURL") // Replace URLs with HTTPURL
+      .trim()
+  );
 }
 
 function extractAndProcessTweetText(tweetDiv: HTMLDivElement): string {
@@ -41,7 +39,7 @@ function extractAndProcessTweetText(tweetDiv: HTMLDivElement): string {
         break;
       case "IMG":
         const emoji = (element as HTMLImageElement).alt || "";
-        tweetText += processEmoji(emoji);
+        tweetText += emoji;
         break;
       default:
         tweetText += element.textContent || "";
@@ -49,7 +47,7 @@ function extractAndProcessTweetText(tweetDiv: HTMLDivElement): string {
     }
   }
 
-  return processTweetText(tweetText);
+  return preProcessTweetText(tweetText);
 }
 
 function scrapeTweets(): string[] {
@@ -113,7 +111,7 @@ function sendTweetsBufferToApi() {
 
   apiCallIntervalId = window.setInterval(() => {
     const now = Date.now();
-    if (newTweetsBuffer.length > 0 && now - lastApiCallTime >= 5000) {
+    if (newTweetsBuffer.length >= 5 && now - lastApiCallTime >= 5000) {
       chrome.runtime.sendMessage({
         action: "processTweets",
         tweets: newTweetsBuffer,
@@ -214,7 +212,9 @@ function processToxicTweet(toxicTweetsResponse: ApiResponse[]) {
   for (const toxicTweet of toxicTweetsResponse) {
     const tweetText = loadedTweets.get(toxicTweet.id);
 
-    if (tweetText && toxicTweet.isToxic) {
+    console.log("TOXISITAS:", toxicTweet.isToxic);
+
+    if (tweetText && toxicTweet.isToxic > 0.5) {
       toxicTweets.push(tweetText);
       console.log("Toxic tweet found:", toxicTweet.id);
     }
@@ -279,7 +279,7 @@ let nextAnalysisTweetId = 0;
 
 function sendUserTweetToApi(tweet: string, tweetId: number) {
   const analyzeButton = document.querySelector(
-    '#extension-tweet-tooltip button'
+    "#extension-tweet-tooltip button"
   ) as HTMLButtonElement;
 
   analyzeButton.disabled = true;
@@ -426,13 +426,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       "span#toxicity-percentage"
     ) as HTMLSpanElement;
     const analyzeButton = document.querySelector(
-      '#extension-tweet-tooltip button'
+      "#extension-tweet-tooltip button"
     ) as HTMLButtonElement;
 
     if (message.tweetId === currentAnalysisTweetId) {
-      percentageSpan.textContent = `${(parseFloat(message.toxicity) * 100).toFixed(
-        2
-      )}%`;
+      percentageSpan.textContent = `${(
+        parseFloat(message.toxicity) * 100
+      ).toFixed(2)}%`;
     }
     analyzeButton.disabled = false;
     analyzeButton.textContent = "Analisis Tweetmu";
