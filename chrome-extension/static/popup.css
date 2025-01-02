@@ -33,7 +33,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 4em;
-  background-color: orangered;
+  background-color: #1d9bf0;
 }
 
 .header h1 {
@@ -86,7 +86,7 @@ body {
 }
 
 .footer button {
-  background-color: orangered;
+  background-color: #1d9bf0;
   cursor: pointer;
   border: none;
   color: white;
@@ -94,7 +94,7 @@ body {
 }
 
 .footer button:hover {
-  background-color: rgb(208, 55, 0);
+  background-color: rgb(28, 141, 216);
 }
 
 #initiate-button {
