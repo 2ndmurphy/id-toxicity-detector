@@ -31,7 +31,17 @@ async function callToxicAnalysisApi(
         isToxic: Math.random() < 0.5, // Example logic
       }));
       resolve(response);
-    }, 1000);
+    }, 3000);
+  });
+}
+
+async function callUserTweetToxicAnalysisApi(tweet: string): Promise<string> {
+  console.log("Sending user tweet to API:", tweet);
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const response = Math.random().toString();
+      resolve(response);
+    }, 3000);
   });
 }
 
@@ -68,6 +78,19 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         if (sender.tab && sender.tab.id !== undefined) {
           sendHighlightingInstructions(sender.tab.id, apiResponse);
         }
+      }
+      break;
+
+    case "processUserTweets":
+      const tweetToAnalyze = message.tweet as string;
+      const tweetId = message.tweetId as number;
+      if (tweetToAnalyze) {
+        const apiResponse = await callUserTweetToxicAnalysisApi(tweetToAnalyze);
+        chrome.tabs.sendMessage(sender.tab?.id as number, {
+          action: "tweetAnalysisResult",
+          toxicity: apiResponse,
+          tweetId: tweetId,
+        });
       }
       break;
 

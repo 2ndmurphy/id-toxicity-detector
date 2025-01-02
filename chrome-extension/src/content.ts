@@ -1,5 +1,9 @@
 import { unemojify } from "node-emoji";
+import { computePosition, flip, offset } from "@floating-ui/dom";
 import { TweetBuffer, ApiRespone } from "./sharedTypes";
+
+/* *** ANALYZE TWEET *** */
+/* ************************** */
 
 let isObserving = false;
 let observer: MutationObserver | null = null;
@@ -255,5 +259,184 @@ window.setInterval(() => {
 chrome.runtime.sendMessage({ action: "getInitiateStatus" }, (response) => {
   if (response && response.status) {
     startObservingTweets();
+  }
+});
+
+/* *** ANALYZE USER TWEET *** */
+/* ************************** */
+
+function debounce(func: Function, delay: number) {
+  let timeoutId: number | undefined;
+  return (...args: any[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => func(...args), delay);
+  };
+}
+
+let isAnalysisInProgress = false;
+let currentAnalysisTweetId: number | null = null;
+let nextAnalysisTweetId = 0;
+
+function sendUserTweetToApi(tweet: string, tweetId: number) {
+  const analyzeButton = document.querySelector(
+    '#extension-tweet-tooltip button'
+  ) as HTMLButtonElement;
+
+  analyzeButton.disabled = true;
+  analyzeButton.textContent = "Loading...";
+  isAnalysisInProgress = true;
+  currentAnalysisTweetId = tweetId;
+
+  chrome.runtime.sendMessage({ action: "processUserTweets", tweet, tweetId });
+}
+
+function createAnalyzeTooltip(textArea: HTMLDivElement): HTMLDivElement {
+  const div = document.createElement("div");
+  div.id = "extension-tweet-tooltip";
+  div.style.cssText = `
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    align-items: center;
+    width: max-content;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 2px solid #1d9bf0;
+    background-color: white;
+    border-radius: 15px;
+    overflow: hidden;
+    z-index: 9999;
+  `;
+
+  const button = document.createElement("button");
+  button.textContent = "Analisis Tweetmu";
+  button.onclick = () => {
+    if (textArea.textContent && !isAnalysisInProgress) {
+      const tweetId = nextAnalysisTweetId++;
+      sendUserTweetToApi(textArea.textContent, tweetId);
+    }
+  };
+  button.style.cssText = `
+    background-color: #1d9bf0;
+    cursor: pointer;
+    border: none;
+    color: white;
+    padding: 0px, 12px;
+    font-size: 1em;
+  `;
+
+  const paragraph = document.createElement("p");
+  paragraph.textContent = "Persentase Toksisitas:";
+  paragraph.style.cssText = `
+    color: #000000;
+    margin: 0 10px;
+  `;
+
+  const span = document.createElement("span");
+  span.id = "toxicity-percentage";
+  span.textContent = "0%";
+  span.style.cssText = `
+    margin-left: 5px;
+  `;
+
+  div.appendChild(button);
+  paragraph.appendChild(span);
+  div.appendChild(paragraph);
+
+  return div;
+}
+
+function positionTooltipAboveTextArea(
+  textArea: HTMLDivElement,
+  tooltip: HTMLDivElement
+) {
+  computePosition(textArea, tooltip, {
+    placement: "top",
+    middleware: [offset({ mainAxis: 6, crossAxis: -40 }), flip()],
+  })
+    .then(({ x, y }) => {
+      Object.assign(tooltip.style, {
+        left: `${x}px`,
+        top: `${y}px`,
+      });
+    })
+    .catch(console.error);
+}
+
+function observeTweetTextArea() {
+  let tweetTextArea: HTMLDivElement | null = null;
+  let analyzeTooltip: HTMLDivElement | null = null;
+
+  const updateTooltip = debounce(() => {
+    if (!tweetTextArea) return;
+
+    const textContent = tweetTextArea.textContent?.trim();
+
+    if (!textContent) {
+      if (isAnalysisInProgress) {
+        isAnalysisInProgress = false;
+        currentAnalysisTweetId = null;
+        console.log("Analysis Failed: Tooltip Removed before Request resolved");
+      }
+      analyzeTooltip?.remove();
+      analyzeTooltip = null;
+      return;
+    }
+
+    if (!analyzeTooltip) {
+      analyzeTooltip = createAnalyzeTooltip(tweetTextArea);
+      document.body.appendChild(analyzeTooltip);
+    }
+
+    positionTooltipAboveTextArea(tweetTextArea, analyzeTooltip);
+  }, 300);
+
+  const handleTextAreaChange = (textArea: HTMLDivElement) => {
+    const inputObserver = new MutationObserver(updateTooltip);
+    inputObserver.observe(textArea, {
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
+  };
+
+  const findTweetTextArea = debounce(() => {
+    const textArea = document.querySelector(
+      "div[data-testid='tweetTextarea_0']"
+    ) as HTMLDivElement | null;
+
+    if (textArea && textArea !== tweetTextArea) {
+      tweetTextArea = textArea;
+      handleTextAreaChange(textArea);
+      updateTooltip();
+    }
+  }, 200);
+
+  const bodyObserver = new MutationObserver(findTweetTextArea);
+  bodyObserver.observe(document.body, { childList: true, subtree: true });
+
+  findTweetTextArea();
+}
+
+observeTweetTextArea();
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "tweetAnalysisResult") {
+    const percentageSpan = document.querySelector(
+      "span#toxicity-percentage"
+    ) as HTMLSpanElement;
+    const analyzeButton = document.querySelector(
+      '#extension-tweet-tooltip button'
+    ) as HTMLButtonElement;
+
+    if (message.tweetId === currentAnalysisTweetId) {
+      percentageSpan.textContent = `${(parseFloat(message.toxicity) * 100).toFixed(
+        2
+      )}%`;
+    }
+    analyzeButton.disabled = false;
+    analyzeButton.textContent = "Analisis Tweetmu";
+    isAnalysisInProgress = false;
+    currentAnalysisTweetId = null;
   }
 });
