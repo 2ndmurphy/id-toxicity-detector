@@ -27,6 +27,9 @@ class SingleTweetResponse(BaseModel):
 
 @app.post("/analyze_tweets", response_model=List[ApiResponse])
 async def analyze_tweets_batch(tweets: List[TweetBuffer]):
+    """
+    Analyzes a batch of tweets and returns hate speech probabilities for each.
+    """
     if not hate_speech_model.is_model_loaded():
         raise HTTPException(status_code=500, detail="Model or tokenizer not loaded.")
 
@@ -43,6 +46,9 @@ async def analyze_tweets_batch(tweets: List[TweetBuffer]):
 
 @app.post("/analyze_tweet", response_model=SingleTweetResponse)
 async def analyze_tweet_single(tweet: SingleTweetInput):
+    """
+    Analyzes a single tweet and returns the hate speech probability.
+    """
     if not hate_speech_model.is_model_loaded():
         raise HTTPException(status_code=500, detail="Model or tokenizer not loaded.")
 
