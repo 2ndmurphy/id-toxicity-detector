@@ -1,22 +1,46 @@
 # Machine Learning Backend
 
-# Prerequisite
+A Python backend for processing tweets using a fine-tuned Hugging Face model, served via an API.
 
-- Project ini pakai `uv` package manager
-  - [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
-  - `winget install --id=astral-sh.uv  -e`
-  - Buka Terminal, cek `uv`
-    - Jika tidak bisa, restart device
-- Command
-  - `uv add <NAMA PACKAGE PIP>`
-  - `uv run <PATH/KE/NAMA FILE>`
-  - cek dokum ygy
+## Features
+- Processes tweets to identify hate speech and toxic content.
+- Powered by [IndoBERTweet-HateSpeech](https://huggingface.co/Exqrch/IndoBERTweet-HateSpeech) models.
 
-# Todos
+## API Documentation
+- Visit the API docs at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-- [*] Import model ke dalam project
-- [ ] Model berhasil running (Cek resource)
-- [ ] Model berhasil respons, output OK
-- [ ] Buat function untuk pre-process tweet
-- [ ] Buat API untuk kirim teks tweet ke model, output ke console
-- [ ] ???
+## Prerequisites
+- Install the [uv](https://docs.astral.sh/uv/) package manager.
+
+## How to Run the API Service
+
+1. Sync or install dependencies:
+    ```bash
+    uv sync
+    ```
+
+2. Activate the virtual environment:
+    - Windows (Command Prompt):
+      ```bash
+      .venv\Scripts\activate
+      ```
+    - Windows (Bash):
+      ```bash
+      source .venv/Scripts/activate
+      ```
+    - macOS/Linux:
+      ```bash
+      source .venv/bin/activate
+      ```
+
+3. Run the server:
+    ```bash
+    uv run main.py
+    ```
+    - You need to download the model first (if not already installed).
+    - Wait for the message `Application startup complete`.
+
+## Credits
+- [IndoBERTweet-HateSpeech](https://huggingface.co/Exqrch/IndoBERTweet-HateSpeech)
+- [IndoBERTweet Base Uncased](https://huggingface.co/indolem/indobertweet-base-uncased)
+- [IndoToxic2024 Dataset](https://huggingface.co/datasets/Exqrch/IndoToxic2024)
