@@ -10,7 +10,7 @@ export interface TweetBuffer {
   tweetText: string;
 }
 
-export interface ApiRespone {
+export interface ApiResponse {
   id: number;
   isToxic: boolean;
 }

@@ -1,6 +1,6 @@
 import { unemojify } from "node-emoji";
 import { computePosition, flip, offset } from "@floating-ui/dom";
-import { TweetBuffer, ApiRespone } from "./sharedTypes";
+import { TweetBuffer, ApiResponse } from "./sharedTypes";
 
 /* *** ANALYZE TWEET *** */
 /* ************************** */
@@ -208,7 +208,7 @@ function stopHighlightingToxicTweets() {
   }
 }
 
-function processToxicTweet(toxicTweetsResponse: ApiRespone[]) {
+function processToxicTweet(toxicTweetsResponse: ApiResponse[]) {
   if (!toxicTweetsResponse || toxicTweetsResponse.length === 0) return;
 
   for (const toxicTweet of toxicTweetsResponse) {
@@ -231,7 +231,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       stopHighlightingToxicTweets();
       break;
     case "highlightTweets":
-      const toxicTweetsResponse = message.toxicTweetsResponse as ApiRespone[];
+      const toxicTweetsResponse = message.toxicTweetsResponse as ApiResponse[];
       processToxicTweet(toxicTweetsResponse);
       stopHighlightingToxicTweets();
       highlightToxicTweets();

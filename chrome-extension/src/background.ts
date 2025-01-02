@@ -1,4 +1,4 @@
-import { TweetBuffer, ApiRespone } from "./sharedTypes";
+import { TweetBuffer, ApiResponse } from "./sharedTypes";
 import { getInitiateStatus, setInitiateStatus } from "./storageUtils";
 
 let latestTweetData: {
@@ -11,7 +11,7 @@ let activeTwitterTabId: number | null = null;
 
 async function sendHighlightingInstructions(
   tabId: number,
-  toxicTweetsResponse: ApiRespone[]
+  toxicTweetsResponse: ApiResponse[]
 ) {
   chrome.tabs.sendMessage(tabId, {
     action: "highlightTweets",
@@ -22,7 +22,7 @@ async function sendHighlightingInstructions(
 // Mock API function
 async function callToxicAnalysisApi(
   tweets: TweetBuffer[]
-): Promise<ApiRespone[]> {
+): Promise<ApiResponse[]> {
   console.log("Sending to API:", tweets);
   return new Promise((resolve) => {
     setTimeout(() => {
