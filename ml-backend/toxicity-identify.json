@@ -1,0 +1,160 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Tweet Toxicity Detector API",
+    "version": "1.0"
+  },
+  "servers": [{ "url": "http://127.0.0.1:8000/" }],
+  "paths": {
+    "/analyze_tweets": {
+      "post": {
+        "summary": "Analyze Multiple Tweets",
+        "description": "Analyzes a batch of tweets and returns hate speech probabilities for each.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Unique identifier for the tweet"
+                    },
+                    "tweetText": {
+                      "type": "string",
+                      "description": "The text of the tweet"
+                    }
+                  },
+                  "required": ["id", "tweetText"]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "Unique identifier for the tweet"
+                      },
+                      "toxicity": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Probability of hate speech (0.0 - 1.0)"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analyze_tweet": {
+      "post": {
+        "summary": "Analyze Single Tweet",
+        "description": "Analyzes a single tweet and returns the hate speech probability.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tweetText": {
+                    "type": "string",
+                    "description": "The text of the tweet"
+                  }
+                },
+                "required": ["tweetText"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "toxicity": {
+                      "type": "number",
+                      "format": "float",
+                      "description": "Probability of hate speech (0.0 - 1.0)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
