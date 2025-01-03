@@ -4,8 +4,8 @@ from typing import List
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 # Higher TEMPERATURE : Uncertain model or Softer Probabilities
-# Lower TEMPERATURE : Confident model or Sharp Probabilities
-TEMPERATURE: float = 4.0
+# Lower TEMPERATURE : Confident model or Sharper Probabilities
+TEMPERATURE: float = 2.0
 
 class HateSpeechModel:
     def __init__(self, model_name: str, tokenizer_name: str):
