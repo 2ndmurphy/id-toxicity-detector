@@ -1,13 +1,14 @@
 import { unemojify } from "node-emoji";
 import { computePosition, flip, offset } from "@floating-ui/dom";
 import { TweetBuffer, ApiResponse } from "./sharedTypes";
+import { getUserAnonStatus } from './storageUtils';
 
 /* *** ANALYZE TWEET *** */
 /* ************************** */
 
 interface ToxicTweet {
-  tweetText: string,
-  toxicity: number,
+  tweetText: string;
+  toxicity: number;
 }
 
 const BATCH_PROCESSING_AMOUNT = 3;
@@ -26,6 +27,10 @@ let lastApiCallTime = Date.now();
 
 let apiCallIntervalId: number | null = null;
 let highlightIntervalId: number | null = null;
+
+let isUserAnon = false;
+let hideToxicTweets = false;
+let userAnonInterval: number | null = null;
 
 function preProcessTweetText(text: string): string {
   return unemojify(
@@ -119,7 +124,10 @@ function sendTweetsBufferToApi() {
 
   apiCallIntervalId = window.setInterval(() => {
     const now = Date.now();
-    if (newTweetsBuffer.length >= BATCH_PROCESSING_AMOUNT && now - lastApiCallTime >= 5000) {
+    if (
+      newTweetsBuffer.length >= BATCH_PROCESSING_AMOUNT &&
+      now - lastApiCallTime >= 5000
+    ) {
       chrome.runtime.sendMessage({
         action: "processTweets",
         tweets: newTweetsBuffer,
@@ -129,6 +137,69 @@ function sendTweetsBufferToApi() {
       lastApiCallTime = now;
     }
   }, 1000);
+}
+
+async function initializeUserAnonState() {
+  const result = await getUserAnonStatus();
+  isUserAnon = result ?? false;
+  runAnonymizeUser();
+}
+
+initializeUserAnonState();
+
+function anonymizeUser() {
+  const usernameDivs = document.querySelectorAll(
+    "div[data-testid='User-Name']"
+  ) as NodeListOf<HTMLDivElement>;
+
+  console.log(isUserAnon);
+
+  for (const usernameDiv of usernameDivs) {
+    const textChild = usernameDiv.childNodes as NodeListOf<HTMLDivElement>;
+    textChild.forEach((child) => {
+      if (isUserAnon) {
+        child.style.display = "none";
+      } else {
+        child.style.display = "block";
+      }
+    });
+  }
+}
+
+function runAnonymizeUser() {
+  if (userAnonInterval !== null) {
+    clearInterval(userAnonInterval);
+    userAnonInterval = null;
+  }
+
+  if (isUserAnon) {
+    userAnonInterval = window.setInterval(anonymizeUser, 600);
+  }
+
+  anonymizeUser();
+}
+
+function handleHideToxicTweets() {
+  const tweetDivs = document.querySelectorAll(
+    "div[data-testid='tweetText']"
+  ) as NodeListOf<HTMLDivElement>;
+
+  for (const tweetDiv of tweetDivs) {
+    const processedText = extractAndProcessTweetText(tweetDiv);
+    const tweet = toxicTweets.find((t) => t.tweetText === processedText);
+
+    if (tweet) {
+      const tweetArticle = tweetDiv.closest(
+        'article[data-testid="tweet"]'
+      ) as HTMLDivElement;
+
+      if (hideToxicTweets) {
+        tweetArticle.style.display = "none";
+      } else {
+        tweetArticle.style.display = "block";
+      }
+    }
+  }
 }
 
 function stopSendTweetsBufferToApi() {
@@ -182,7 +253,11 @@ function stopObservingTweets() {
   }
 }
 
-function interpolateColor(minColor: string, maxColor: string, factor: number): string {
+function interpolateColor(
+  minColor: string,
+  maxColor: string,
+  factor: number
+): string {
   const minRgb = minColor.match(/\d+/g)?.map(Number) || [255, 255, 255];
   const maxRgb = maxColor.match(/\d+/g)?.map(Number) || [0, 0, 0];
 
@@ -197,8 +272,8 @@ function interpolateColor(minColor: string, maxColor: string, factor: number): s
 function highlightToxicTweets() {
   if (highlightIntervalId !== null) return;
 
-  const maxHighlightColor = "rgba(255, 30, 0, 0.5)";  // Highest toxicity color
-  const minHighlightColor = "rgba(255, 180, 0, 0.5)";  // Lowest toxicity color
+  const maxHighlightColor = "rgba(255, 30, 0, 0.5)"; // Highest toxicity color
+  const minHighlightColor = "rgba(255, 180, 0, 0.5)"; // Lowest toxicity color
 
   highlightIntervalId = window.setInterval(() => {
     const tweetDivs = document.querySelectorAll(
@@ -208,7 +283,7 @@ function highlightToxicTweets() {
     for (const tweetDiv of tweetDivs) {
       const processedText = extractAndProcessTweetText(tweetDiv);
 
-      const tweet = toxicTweets.find(t => t.tweetText === processedText);
+      const tweet = toxicTweets.find((t) => t.tweetText === processedText);
 
       if (tweet) {
         const tweetArticle = tweetDiv.closest(
@@ -216,7 +291,11 @@ function highlightToxicTweets() {
         ) as HTMLDivElement;
 
         const toxicityFactor = Math.min(Math.max(tweet.toxicity, 0), 1);
-        const backgroundColor = interpolateColor(minHighlightColor, maxHighlightColor, toxicityFactor);
+        const backgroundColor = interpolateColor(
+          minHighlightColor,
+          maxHighlightColor,
+          toxicityFactor
+        );
 
         tweetArticle.style.backgroundColor = backgroundColor;
 
@@ -239,12 +318,14 @@ function processToxicTweet(toxicTweetsResponse: ApiResponse[]) {
   for (const toxicTweet of toxicTweetsResponse) {
     const tweetText = loadedTweets.get(toxicTweet.id);
 
-    console.log(`Tweet Id ${toxicTweet.id} | Toxicity ${toxicTweet.toxicity} > Threshold ${TOXICITY_THRESHOLD}`);
+    console.log(
+      `Tweet Id ${toxicTweet.id} | Toxicity ${toxicTweet.toxicity} > Threshold ${TOXICITY_THRESHOLD}`
+    );
 
     if (tweetText && toxicTweet.toxicity > TOXICITY_THRESHOLD) {
       toxicTweets.push({
         tweetText: tweetText,
-        toxicity: toxicTweet.toxicity
+        toxicity: toxicTweet.toxicity,
       });
       console.log("Toxic tweet found:", toxicTweet.id);
     }
@@ -265,6 +346,14 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       processToxicTweet(toxicTweetsResponse);
       stopHighlightingToxicTweets();
       highlightToxicTweets();
+      break;
+    case "updateHideToxicTweetStatus":
+      hideToxicTweets = message.status;
+      handleHideToxicTweets();
+      break;
+    case "updateUserAnonStatus":
+      isUserAnon = message.status;
+      runAnonymizeUser();
       break;
   }
 });

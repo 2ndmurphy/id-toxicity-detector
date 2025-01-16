@@ -9,6 +9,9 @@ let latestTweetData: {
 
 let activeTwitterTabId: number | null = null;
 
+let hideToxicTweetStatus = false;
+let userAnonStatus = false;
+
 const API_BASE_URL = "http://localhost:8000";
 
 async function sendHighlightingInstructions(
@@ -86,6 +89,34 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         });
       });
       activeTwitterTabId = null;
+      break;
+
+    case "hideToxicTweetStatusChange":
+      hideToxicTweetStatus = message.status;
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        tabs.forEach((tab) => {
+          if (tab.id !== undefined) {
+            chrome.tabs.sendMessage(tab.id, {
+              action: "updateHideToxicTweetStatus",
+              status: hideToxicTweetStatus,
+            });
+          }
+        });
+      });
+      break;
+
+    case "userAnonStatusChange":
+      userAnonStatus = message.status;
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        tabs.forEach((tab) => {
+          if (tab.id !== undefined) {
+            chrome.tabs.sendMessage(tab.id, {
+              action: "updateUserAnonStatus",
+              status: userAnonStatus,
+            });
+          }
+        });
+      });
       break;
 
     case "processTweets":
