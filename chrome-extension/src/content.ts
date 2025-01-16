@@ -1,7 +1,7 @@
 import { unemojify } from "node-emoji";
 import { computePosition, flip, offset } from "@floating-ui/dom";
 import { TweetBuffer, ApiResponse } from "./sharedTypes";
-import { getUserAnonStatus } from './storageUtils';
+import { getHideToxicTweetStatus, getUserAnonStatus } from './storageUtils';
 
 /* *** ANALYZE TWEET *** */
 /* ************************** */
@@ -31,6 +31,7 @@ let highlightIntervalId: number | null = null;
 let isUserAnon = false;
 let hideToxicTweets = false;
 let userAnonInterval: number | null = null;
+let hideToxicTweetInterval: number | null = null;
 
 function preProcessTweetText(text: string): string {
   return unemojify(
@@ -152,8 +153,6 @@ function anonymizeUser() {
     "div[data-testid='User-Name']"
   ) as NodeListOf<HTMLDivElement>;
 
-  console.log(isUserAnon);
-
   for (const usernameDiv of usernameDivs) {
     const textChild = usernameDiv.childNodes as NodeListOf<HTMLDivElement>;
     textChild.forEach((child) => {
@@ -179,6 +178,14 @@ function runAnonymizeUser() {
   anonymizeUser();
 }
 
+async function initializeHideToxicTweetState() {
+  const result = await getHideToxicTweetStatus();
+  hideToxicTweets = result ?? false;
+  runHandleHideToxicTweets();
+}
+
+initializeHideToxicTweetState();
+
 function handleHideToxicTweets() {
   const tweetDivs = document.querySelectorAll(
     "div[data-testid='tweetText']"
@@ -200,6 +207,19 @@ function handleHideToxicTweets() {
       }
     }
   }
+}
+
+function runHandleHideToxicTweets() {
+  if (hideToxicTweetInterval !== null) {
+    clearInterval(hideToxicTweetInterval);
+    hideToxicTweetInterval = null;
+  }
+
+  if (hideToxicTweets) {
+    hideToxicTweetInterval = window.setInterval(handleHideToxicTweets, 1000);
+  }
+
+  handleHideToxicTweets();
 }
 
 function stopSendTweetsBufferToApi() {
@@ -349,7 +369,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       break;
     case "updateHideToxicTweetStatus":
       hideToxicTweets = message.status;
-      handleHideToxicTweets();
+      runHandleHideToxicTweets();
       break;
     case "updateUserAnonStatus":
       isUserAnon = message.status;
