@@ -11,22 +11,22 @@ TOKENIZER_NAME = "indolem/indobertweet-base-uncased"
 
 hate_speech_model = HateSpeechModel(MODEL_NAME, TOKENIZER_NAME)
 
-class TweetBuffer(BaseModel):
+class TweetList(BaseModel):
     id: int
     tweetText: str
 
-class ApiResponse(BaseModel):
+class ApiResponseList(BaseModel):
     id: int
     toxicity: float
 
-class SingleTweetInput(BaseModel):
+class TweetSingle(BaseModel):
     tweetText: str
 
-class SingleTweetResponse(BaseModel):
+class ApiResponseSingle(BaseModel):
     toxicity: float
 
-@app.post("/analyze_tweets", response_model=List[ApiResponse])
-async def analyze_tweets_batch(tweets: List[TweetBuffer]):
+@app.post("/analyze_tweets", response_model=List[ApiResponseList])
+async def analyze_tweets_batch(tweets: List[TweetList]):
     """
     Analyzes a batch of tweets and returns hate speech probabilities for each.
     """
@@ -40,12 +40,12 @@ async def analyze_tweets_batch(tweets: List[TweetBuffer]):
         raise HTTPException(status_code=500, detail=str(e))
 
     responses = [
-        ApiResponse(id=tweet.id, toxicity=probabilities[i]) for i, tweet in enumerate(tweets)
+        ApiResponseList(id=tweet.id, toxicity=probabilities[i]) for i, tweet in enumerate(tweets)
     ]
     return responses
 
-@app.post("/analyze_tweet", response_model=SingleTweetResponse)
-async def analyze_tweet_single(tweet: SingleTweetInput):
+@app.post("/analyze_tweet", response_model=ApiResponseSingle)
+async def analyze_tweet_single(tweet: TweetSingle):
     """
     Analyzes a single tweet and returns the hate speech probability.
     """
@@ -57,7 +57,7 @@ async def analyze_tweet_single(tweet: SingleTweetInput):
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return SingleTweetResponse(toxicity=hate_prob)
+    return ApiResponseSingle(toxicity=hate_prob)
 
 if __name__ == "__main__":
     import uvicorn
