@@ -1,4 +1,11 @@
-import { getInitiateStatus, setInitiateStatus } from "./storageUtils";
+import {
+  getInitiateStatus,
+  setInitiateStatus,
+  getHideToxicTweetStatus,
+  setHideToxicTweetStatus,
+  getUserAnonStatus,
+  setUserAnonStatus,
+} from "./storageUtils";
 
 const negativityAmount = document.getElementById(
   "negativity-amount"
@@ -9,6 +16,13 @@ const scrappedAmount = document.getElementById(
 const percentageToxic = document.getElementById(
   "percentage-toxic"
 ) as HTMLSpanElement;
+
+const hideToxicTweetSlider = document.getElementById(
+  "hide-toxic-tweet"
+) as HTMLInputElement;
+const userAnonSlider = document.getElementById(
+  "user-anon"
+) as HTMLInputElement;
 
 const initiateButton = document.getElementById(
   "initiate-button"
@@ -29,6 +43,30 @@ function resetDisplay() {
   negativityAmount.textContent = "0";
   percentageToxic.textContent = "0%";
 }
+
+async function initSliderStates(): Promise<void> {
+  const hideToxicTweetStatus = await getHideToxicTweetStatus();
+  const userAnonStatus = await getUserAnonStatus();
+
+  hideToxicTweetSlider.checked = hideToxicTweetStatus;
+  userAnonSlider.checked = userAnonStatus;
+}
+
+hideToxicTweetSlider.addEventListener("change", async () => {
+  await setHideToxicTweetStatus(hideToxicTweetSlider.checked);
+  chrome.runtime.sendMessage({
+    action: "hideToxicTweetStatusChange",
+    status: hideToxicTweetSlider.checked,
+  });
+});
+
+userAnonSlider.addEventListener("change", async () => {
+  await setUserAnonStatus(userAnonSlider.checked);
+  chrome.runtime.sendMessage({
+    action: "userAnonStatusChange",
+    status: userAnonSlider.checked,
+  });
+});
 
 async function initButtonState(): Promise<void> {
   const status = await getInitiateStatus();
@@ -67,9 +105,10 @@ async function handleInitiateButtonClick() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   chrome.runtime.sendMessage({ action: "requestPopupData" });
-  initButtonState();
+  await initButtonState();
+  await initSliderStates();
 });
 
 initiateButton.addEventListener("click", handleInitiateButtonClick);
