@@ -23,25 +23,6 @@ body {
   font-style: normal;
 }
 
-/* div {
-  border: 1px solid red;
-} */
-
-/* HEADER : TOP BAR */
-.header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 4em;
-  background-color: #1d9bf0;
-}
-
-.header h1 {
-  margin: 0 0 0 0.8em;
-  color: white;
-  font-size: 1rem;
-}
-
 /* NEGATIVITY INFORMATION : AMOUNT & TEXT */
 .negativity-information {
   display: flex;
@@ -95,7 +76,7 @@ body {
   width: 100%;
 }
 
-.extra-configs div > span {
+.extra-configs div>span {
   font-size: 1.2em;
 }
 
@@ -137,15 +118,15 @@ body {
   transition: .4s;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #2196F3;
 }
 
-input:focus + .slider {
+input:focus+.slider {
   box-shadow: 0 0 1px #2196F3;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   -webkit-transform: translateX(12px);
   -ms-transform: translateX(12px);
   transform: translateX(12px);
