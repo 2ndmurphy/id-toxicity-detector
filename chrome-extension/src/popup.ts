@@ -18,7 +18,7 @@ const percentageToxic = document.getElementById(
 ) as HTMLSpanElement;
 
 const hideToxicTweetSlider = document.getElementById(
-  "hide-toxic-tweet"
+  "hide-toxic-tweets"
 ) as HTMLInputElement;
 const userAnonSlider = document.getElementById(
   "user-anon"
