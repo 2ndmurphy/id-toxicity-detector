@@ -70,7 +70,7 @@ userAnonSlider.addEventListener("change", async () => {
 
 async function initButtonState(): Promise<void> {
   const status = await getInitiateStatus();
-  initiateButton.textContent = status ? "Stop" : "Start";
+  initiateButton.textContent = status ? "Stop Session" : "Start Session";
 
   chrome.runtime.sendMessage({
     action: status ? "startAnalysis" : "stopAnalysis",
