@@ -70,7 +70,11 @@ userAnonSlider.addEventListener("change", async () => {
 
 async function initButtonState(): Promise<void> {
   const status = await getInitiateStatus();
-  initiateButton.textContent = status ? "Stop Session" : "Start Session";
+  initiateButton.innerHTML = status ?
+    "<i class=\"fa-solid fa-stop\" style=\"margin-right: 8px;\"></i>Stop Session" :
+    "<i class=\"fa-solid fa-play\" style=\"margin-right: 8px;\"></i>Start Session";
+  // initiateButton.textContent = status ? "Stop Session" : "Start Session";
+
 
   chrome.runtime.sendMessage({
     action: status ? "startAnalysis" : "stopAnalysis",
@@ -97,7 +101,10 @@ async function handleInitiateButtonClick() {
     const currentStatus = await getInitiateStatus();
     const newStatus = !currentStatus;
     await setInitiateStatus(newStatus);
-    initiateButton.textContent = newStatus ? "Stop Session" : "Start Session";
+    initiateButton.innerHTML = newStatus ?
+      "<i class=\"fa-solid fa-stop\" style=\"margin-right: 8px;\"></i>Stop Session" :
+      "<i class=\"fa-solid fa-play\" style=\"margin-right: 8px;\"></i>Start Session";
+    // initiateButton.textContent = newStatus ? "Stop Session" : "Start Session";
 
     chrome.runtime.sendMessage({
       action: newStatus ? "startAnalysis" : "stopAnalysis",
