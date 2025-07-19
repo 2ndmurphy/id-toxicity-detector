@@ -12,15 +12,6 @@ html {
   min-width: 500px;
 }
 
-/* body {
-  width: 380px;
-  min-height: 500px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #333;
-  overflow: hidden;
-} */
-
 /* POP UP CONTENT */
 body {
   margin: 0;
@@ -104,19 +95,6 @@ body {
   align-items: center;
   justify-content: center;
 }
-
-/* .main-counter::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-  border-radius: 50%;
-  z-index: -1;
-  animation: rotate 3s linear infinite;
-} */
 
 @keyframes rotate {
   0% {
@@ -345,5 +323,4 @@ body {
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 4px;
-  /* Track color */
 }
