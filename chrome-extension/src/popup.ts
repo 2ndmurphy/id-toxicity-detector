@@ -97,7 +97,7 @@ async function handleInitiateButtonClick() {
     const currentStatus = await getInitiateStatus();
     const newStatus = !currentStatus;
     await setInitiateStatus(newStatus);
-    initiateButton.textContent = newStatus ? "Stop" : "Start";
+    initiateButton.textContent = newStatus ? "Stop Session" : "Start Session";
 
     chrome.runtime.sendMessage({
       action: newStatus ? "startAnalysis" : "stopAnalysis",
