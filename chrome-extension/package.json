@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Detect Toxicity by Scrapping Indonesian Tweets and feed it into a Python Backend API",
   "scripts": {
-    "start": "webpack --watch --config webpack.dev.ts",
+    "start": "ts-node ./node_modules/webpack/bin/webpack --watch --config webpack.dev.ts",
     "build": "webpack --config webpack.prod.ts"
   },
   "keywords": [],
@@ -15,7 +15,7 @@
     "copy-webpack-plugin": "^12.0.2",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2",
+    "typescript": "^5.8.3",
     "webpack": "^5.100.2",
     "webpack-cli": "^6.0.1",
     "webpack-merge": "^6.0.1"
